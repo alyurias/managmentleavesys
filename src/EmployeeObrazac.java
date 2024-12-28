@@ -105,8 +105,15 @@ public class EmployeeObrazac {
 
                     int option = JOptionPane.showConfirmDialog(null, panel, "Edit Ticket", JOptionPane.OK_CANCEL_OPTION);
                     if (option == JOptionPane.OK_OPTION) {
-                        tableModel.setValueAt(categoryComboBox.getSelectedItem(), selectedRow, 1);
-                        // Additional logic to update the ticket in MongoDB can be added here
+                        String newCategory = (String) categoryComboBox.getSelectedItem();
+                        tableModel.setValueAt(newCategory, selectedRow, 1);
+
+                        // Update the ticket in MongoDB
+                        Ticket updatedTicket = new Ticket(ticketId, newCategory, false); // Assuming approval doesn't change here
+                        employeeService.updateTicket(updatedTicket);
+
+                        // Optionally reload tickets to ensure consistency
+                        loadEmployeeTickets();
                     }
                 }
             }
@@ -119,9 +126,15 @@ public class EmployeeObrazac {
                     int confirm = JOptionPane.showConfirmDialog(null, "Are you sure you want to delete this ticket?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
                     if (confirm == JOptionPane.YES_OPTION) {
                         String ticketId = (String) tableModel.getValueAt(selectedRow, 0);
+
+                        // Remove the row from the table
                         tableModel.removeRow(selectedRow);
 
-                        // Additional logic to delete the ticket from MongoDB can be added here
+                        // Delete the ticket from MongoDB
+                        employeeService.deleteTicket(employee.getId(), ticketId);
+
+                        // Optionally reload tickets to ensure consistency
+                        loadEmployeeTickets();
                     }
                 }
             }

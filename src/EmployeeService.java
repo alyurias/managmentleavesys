@@ -24,7 +24,7 @@ public class EmployeeService {
             String storedPassword = doc.getString("password");
 
             if (storedPassword.equals(password)) {
-                String id = doc.getString("_id"); // Change to getString
+                String id = doc.getString("_id");
                 String name = doc.getString("name");
                 String surname = doc.getString("surname");
                 String role = doc.getString("role");
@@ -43,7 +43,7 @@ public class EmployeeService {
     // Method for adding a ticket to an employee
     public void addTicketToEmployee(String employeeId, Ticket ticket) {
         // Create a new document for the ticket
-        Document ticketDoc = new Document("_id", ticket.getId()) // Use string ID
+        Document ticketDoc = new Document("_id", ticket.getId())
                 .append("type", "ticket")
                 .append("id", ticket.getId())
                 .append("category", ticket.getCategory())
@@ -52,13 +52,33 @@ public class EmployeeService {
         collection.insertOne(ticketDoc);
 
         // Update the employee's tickets array
-        Document query = new Document("_id", employeeId); // Use string ID
+        Document query = new Document("_id", employeeId);
         collection.updateOne(query, Updates.push("tickets", ticket.getId()));
+    }
+
+    // Method for updating a ticket
+    public void updateTicket(Ticket ticket) {
+        // Update the ticket document in the collection
+        Document query = new Document("_id", ticket.getId());
+        Document update = new Document("$set", new Document("category", ticket.getCategory())
+                .append("approved", ticket.isApproved()));
+        collection.updateOne(query, update);
+    }
+
+    // Method for deleting a ticket
+    public void deleteTicket(String employeeId, String ticketId) {
+        // Delete the ticket document from the collection
+        Document query = new Document("_id", ticketId);
+        collection.deleteOne(query);
+
+        // Remove the ticket ID from the employee's tickets array
+        Document employeeQuery = new Document("_id", employeeId);
+        collection.updateOne(employeeQuery, Updates.pull("tickets", ticketId));
     }
 
     // Method to get all tickets for an employee
     public List<Ticket> getTicketsForEmployee(String employeeId) {
-        Document employeeDoc = collection.find(Filters.eq("_id", employeeId)).first(); // Use string ID
+        Document employeeDoc = collection.find(Filters.eq("_id", employeeId)).first();
         List<String> ticketIds = (List<String>) employeeDoc.get("tickets");
 
         List<Ticket> tickets = new ArrayList<>();
