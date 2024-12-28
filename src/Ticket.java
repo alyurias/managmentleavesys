@@ -1,5 +1,4 @@
-
-
+// Ticket.java
 import java.util.UUID;
 
 public class Ticket {
@@ -9,6 +8,12 @@ public class Ticket {
 
     public Ticket(String category, boolean approved) {
         this.id = UUID.randomUUID().toString(); // Generisanje jedinstvenog ID-a
+        this.category = category;
+        this.approved = approved;
+    }
+
+    public Ticket(String id, String category, boolean approved) { // Dodavanje novog konstruktora
+        this.id = id;
         this.category = category;
         this.approved = approved;
     }

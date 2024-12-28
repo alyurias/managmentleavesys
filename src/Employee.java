@@ -1,5 +1,4 @@
-
-
+// Employee.java
 import java.util.ArrayList;
 
 public class Employee {
@@ -9,15 +8,16 @@ public class Employee {
     private String email;
     private String password;
     private ArrayList<String> tickets;
-    private String role;  // Dodan atribut role
+    private String role;
 
-    public Employee(String name, String surname, String email, String password, ArrayList<String> tickets, String role) {
+    public Employee(String id, String name, String surname, String email, String password, ArrayList<String> tickets, String role) {
+        this.id = id;
         this.name = name;
         this.surname = surname;
         this.email = email;
         this.password = password;
         this.tickets = tickets;
-        this.role = role;  // Inicijalizacija role
+        this.role = role;
     }
 
     public String getId() {
@@ -45,6 +45,6 @@ public class Employee {
     }
 
     public String getRole() {
-        return role;  // Getter za role
+        return role;
     }
 }
