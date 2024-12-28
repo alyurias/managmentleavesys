@@ -24,7 +24,7 @@ public class MongoDBController {
                     .build();
 
             mongoClient = MongoClients.create(settings);
-            database = mongoClient.getDatabase("databaseName");
+            database = mongoClient.getDatabase("radnici");
 
             // Test connection
             database.runCommand(new Document("ping", 1));
