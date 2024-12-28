@@ -1,29 +1,35 @@
 import java.util.UUID;
+import java.util.Date;
 
-// Ticket.java
 public class Ticket {
     private String id;
     private String category;
     private boolean approved;
-    private String reason; // Novi atribut
+    private String reason;
+    private Date startTicketDate; // New attribute
+    private Date endTicketDate; // New attribute
 
-    // Konstruktor sa reason
-    public Ticket(String category, boolean approved, String reason) {
+    // Constructor with reason, start and end dates
+    public Ticket(String category, boolean approved, String reason, Date startTicketDate, Date endTicketDate) {
         this.id = UUID.randomUUID().toString();
         this.category = category;
         this.approved = approved;
         this.reason = reason;
+        this.startTicketDate = startTicketDate;
+        this.endTicketDate = endTicketDate;
     }
 
-    // Konstruktor sa ID-om i reason
-    public Ticket(String id, String category, boolean approved, String reason) {
+    // Constructor with ID, reason, start and end dates
+    public Ticket(String id, String category, boolean approved, String reason, Date startTicketDate, Date endTicketDate) {
         this.id = id;
         this.category = category;
         this.approved = approved;
         this.reason = reason;
+        this.startTicketDate = startTicketDate;
+        this.endTicketDate = endTicketDate;
     }
 
-    // Getteri i setteri za id
+    // Getters and setters for all attributes
     public String getId() {
         return id;
     }
@@ -32,7 +38,6 @@ public class Ticket {
         this.id = id;
     }
 
-    // Getteri i setteri za category
     public String getCategory() {
         return category;
     }
@@ -41,7 +46,6 @@ public class Ticket {
         this.category = category;
     }
 
-    // Getteri i setteri za approved
     public boolean isApproved() {
         return approved;
     }
@@ -50,13 +54,28 @@ public class Ticket {
         this.approved = approved;
     }
 
-    // Getteri i setteri za reason
     public String getReason() {
         return reason;
     }
 
     public void setReason(String reason) {
         this.reason = reason;
+    }
+
+    public Date getStartTicketDate() {
+        return startTicketDate;
+    }
+
+    public void setStartTicketDate(Date startTicketDate) {
+        this.startTicketDate = startTicketDate;
+    }
+
+    public Date getEndTicketDate() {
+        return endTicketDate;
+    }
+
+    public void setEndTicketDate(Date endTicketDate) {
+        this.endTicketDate = endTicketDate;
     }
 
     @Override
@@ -66,6 +85,8 @@ public class Ticket {
                 ", category='" + category + '\'' +
                 ", approved=" + approved +
                 ", reason='" + reason + '\'' +
+                ", startTicketDate=" + startTicketDate +
+                ", endTicketDate=" + endTicketDate +
                 '}';
     }
 }

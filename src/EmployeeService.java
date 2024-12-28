@@ -6,6 +6,7 @@ import com.mongodb.client.model.Updates;
 import org.bson.Document;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class EmployeeService {
@@ -46,7 +47,9 @@ public class EmployeeService {
                 .append("id", ticket.getId())
                 .append("category", ticket.getCategory())
                 .append("approved", ticket.isApproved())
-                .append("reason", ticket.getReason()); // Dodavanje razloga
+                .append("reason", ticket.getReason()) // Dodavanje razloga
+                .append("startTicketDate", ticket.getStartTicketDate())
+                .append("endTicketDate", ticket.getEndTicketDate());
 
         collection.insertOne(ticketDoc);
 
@@ -54,12 +57,17 @@ public class EmployeeService {
         collection.updateOne(query, Updates.push("tickets", ticket.getId()));
     }
 
-    // Method for updating a ticket
+    // EmployeeService.java
+// Method for updating a ticket
     public void updateTicket(Ticket ticket) {
         // Update the ticket document in the collection
         Document query = new Document("_id", ticket.getId());
         Document update = new Document("$set", new Document("category", ticket.getCategory())
-                .append("approved", ticket.isApproved()));
+                .append("approved", ticket.isApproved())
+                .append("reason", ticket.getReason()) // Add reason field
+                .append("startTicketDate", ticket.getStartTicketDate()) // Add start date field
+                .append("endTicketDate", ticket.getEndTicketDate())); // Add end date field
+
         collection.updateOne(query, update);
     }
 
@@ -86,7 +94,12 @@ public class EmployeeService {
                 String category = ticketDoc.getString("category");
                 boolean approved = ticketDoc.getBoolean("approved");
                 String reason = ticketDoc.getString("reason"); // Dohvatanje razloga
-                tickets.add(new Ticket(id, category, approved, reason));
+
+                // Fetching start and end dates
+                Date startTicketDate = ticketDoc.getDate("startTicketDate");
+                Date endTicketDate = ticketDoc.getDate("endTicketDate");
+
+                tickets.add(new Ticket(id, category, approved, reason, startTicketDate, endTicketDate));
             }
         }
         return tickets;
