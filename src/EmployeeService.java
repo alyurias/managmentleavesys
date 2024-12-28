@@ -40,18 +40,16 @@ public class EmployeeService {
         return null;
     }
 
-    // Method for adding a ticket to an employee
     public void addTicketToEmployee(String employeeId, Ticket ticket) {
-        // Create a new document for the ticket
         Document ticketDoc = new Document("_id", ticket.getId())
                 .append("type", "ticket")
                 .append("id", ticket.getId())
                 .append("category", ticket.getCategory())
-                .append("approved", ticket.isApproved());
+                .append("approved", ticket.isApproved())
+                .append("reason", ticket.getReason()); // Dodavanje razloga
 
         collection.insertOne(ticketDoc);
 
-        // Update the employee's tickets array
         Document query = new Document("_id", employeeId);
         collection.updateOne(query, Updates.push("tickets", ticket.getId()));
     }
@@ -76,7 +74,6 @@ public class EmployeeService {
         collection.updateOne(employeeQuery, Updates.pull("tickets", ticketId));
     }
 
-    // Method to get all tickets for an employee
     public List<Ticket> getTicketsForEmployee(String employeeId) {
         Document employeeDoc = collection.find(Filters.eq("_id", employeeId)).first();
         List<String> ticketIds = (List<String>) employeeDoc.get("tickets");
@@ -88,7 +85,8 @@ public class EmployeeService {
                 String id = ticketDoc.getString("id");
                 String category = ticketDoc.getString("category");
                 boolean approved = ticketDoc.getBoolean("approved");
-                tickets.add(new Ticket(id, category, approved));  // Use the appropriate constructor
+                String reason = ticketDoc.getString("reason"); // Dohvatanje razloga
+                tickets.add(new Ticket(id, category, approved, reason));
             }
         }
         return tickets;

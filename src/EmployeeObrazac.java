@@ -32,7 +32,7 @@ public class EmployeeObrazac {
         logoutButton = new JButton("Logout");
 
         // Create table model with columns: ID, Category, Approved
-        String[] columns = {"ID", "Category", "Approved"};
+        String[] columns = {"ID", "Category", "Approved", "Reason"}; // Dodana kolona Reason
         tableModel = new DefaultTableModel(columns, 0);
         requestTable = new JTable(tableModel);
 
@@ -64,21 +64,29 @@ public class EmployeeObrazac {
             public void actionPerformed(ActionEvent e) {
                 String[] categories = {"Obicni", "Redovni", "Zdravstveni"};
                 JComboBox<String> categoryComboBox = new JComboBox<>(categories);
+                JTextField reasonField = new JTextField(20); // Polje za unos razloga
 
                 JPanel panel = new JPanel();
+                panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
                 panel.add(new JLabel("Category:"));
                 panel.add(categoryComboBox);
+                panel.add(new JLabel("Reason:"));
+                panel.add(reasonField);
 
                 int option = JOptionPane.showConfirmDialog(null, panel, "Add Ticket", JOptionPane.OK_CANCEL_OPTION);
                 if (option == JOptionPane.OK_OPTION) {
                     String category = (String) categoryComboBox.getSelectedItem();
-                    Ticket newTicket = new Ticket(category, false); // Assuming new tickets are not approved initially
+                    String reason = reasonField.getText().trim();
 
-                    // Add new ticket to MongoDB
-                    employeeService.addTicketToEmployee(employee.getId(), newTicket);
+                    if (!reason.isEmpty()) {
+                        Ticket newTicket = new Ticket(category, false, reason); // Novi atribut reason
+                        employeeService.addTicketToEmployee(employee.getId(), newTicket);
 
-                    // Reload tickets for the employee
-                    loadEmployeeTickets();
+                        // Reload tickets za zaposlenog
+                        loadEmployeeTickets();
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Reason cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
                 }
             }
         });
@@ -86,34 +94,59 @@ public class EmployeeObrazac {
         editButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 int selectedRow = requestTable.getSelectedRow();
-                if (selectedRow != -1) {
-                    String ticketId = (String) tableModel.getValueAt(selectedRow, 0);
-                    String category = (String) tableModel.getValueAt(selectedRow, 1);
+                if (selectedRow == -1) {
+                    JOptionPane.showMessageDialog(null, "Please select a ticket to edit.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
 
-                    JTextField ticketIdField = new JTextField(ticketId);
-                    ticketIdField.setEditable(false); // ID cannot be changed
+                // Dohvati ID odabranog ticketa iz tabele
+                String ticketId = (String) tableModel.getValueAt(selectedRow, 0);
+                Ticket ticketToEdit = null;
 
-                    String[] categories = {"Obicni", "Redovni", "Zdravstveni"};
-                    JComboBox<String> categoryComboBox = new JComboBox<>(categories);
-                    categoryComboBox.setSelectedItem(category);
+                // Pronalaženje ticketa u listi
+                List<Ticket> tickets = employeeService.getTicketsForEmployee(employee.getId());
+                for (Ticket ticket : tickets) {
+                    if (ticket.getId().equals(ticketId)) {
+                        ticketToEdit = ticket;
+                        break;
+                    }
+                }
 
-                    JPanel panel = new JPanel();
-                    panel.add(new JLabel("Ticket ID:"));
-                    panel.add(ticketIdField);
-                    panel.add(new JLabel("Category:"));
-                    panel.add(categoryComboBox);
+                if (ticketToEdit == null) {
+                    JOptionPane.showMessageDialog(null, "Ticket not found.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
 
-                    int option = JOptionPane.showConfirmDialog(null, panel, "Edit Ticket", JOptionPane.OK_CANCEL_OPTION);
-                    if (option == JOptionPane.OK_OPTION) {
-                        String newCategory = (String) categoryComboBox.getSelectedItem();
-                        tableModel.setValueAt(newCategory, selectedRow, 1);
+                // Kreiranje dijaloga za uređivanje
+                String[] categories = {"Obicni", "Redovni", "Zdravstveni"};
+                JComboBox<String> categoryComboBox = new JComboBox<>(categories);
+                categoryComboBox.setSelectedItem(ticketToEdit.getCategory());
 
-                        // Update the ticket in MongoDB
-                        Ticket updatedTicket = new Ticket(ticketId, newCategory, false); // Assuming approval doesn't change here
-                        employeeService.updateTicket(updatedTicket);
+                JTextField reasonField = new JTextField(ticketToEdit.getReason(), 20);
 
-                        // Optionally reload tickets to ensure consistency
+                JPanel panel = new JPanel();
+                panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+                panel.add(new JLabel("Category:"));
+                panel.add(categoryComboBox);
+                panel.add(new JLabel("Reason:"));
+                panel.add(reasonField);
+
+                int option = JOptionPane.showConfirmDialog(null, panel, "Edit Ticket", JOptionPane.OK_CANCEL_OPTION);
+                if (option == JOptionPane.OK_OPTION) {
+                    String updatedCategory = (String) categoryComboBox.getSelectedItem();
+                    String updatedReason = reasonField.getText().trim();
+
+                    if (!updatedReason.isEmpty()) {
+                        ticketToEdit.setCategory(updatedCategory);
+                        ticketToEdit.setReason(updatedReason);
+
+                        // Ažuriraj ticket u bazi podataka
+                        employeeService.updateTicket(ticketToEdit);
+
+                        // Ponovo učitaj listu ticketa za zaposlenog
                         loadEmployeeTickets();
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Reason cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
                     }
                 }
             }
@@ -166,10 +199,10 @@ public class EmployeeObrazac {
 
     private void loadEmployeeTickets() {
         List<Ticket> tickets = employeeService.getTicketsForEmployee(employee.getId());
-        tableModel.setRowCount(0); // Clear existing rows
+        tableModel.setRowCount(0); // Očistiti postojeće redove
         for (Ticket ticket : tickets) {
             String status = ticket.isApproved() ? "Prihvaćeno" : "Čeka na odobrenje";
-            tableModel.addRow(new Object[]{ticket.getId(), ticket.getCategory(), status});
+            tableModel.addRow(new Object[]{ticket.getId(), ticket.getCategory(), status, ticket.getReason()});
         }
     }
 }
